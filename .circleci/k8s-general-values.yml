@@ -1,27 +1,24 @@
 
 fullnameOverride: "exercises-start-points"
 
-replicaCount: 3
+replicaCount: 1
 
 service:
-  port: 4525
   annotations:
     prometheus.io/scrape: "true"
-    prometheus.io/port: "4525"
 
 volumes:
   - name: exercises-start-points-tmp-dir
     emptyDir:
       medium: Memory
       sizeLimit: "16Mi"
-
-podSecurityContext:
-  runAsUser: 65534 # nobody
-  fsGroup: 65534 # nobody
+  - name: docker-socket
+    hostPath:
+      path: /var/run/docker.sock
+      type: File
 
 containers:
   - name: exercises-start-points
-    image: cyberdojo/exercises-start-points
     securityContext:
       allowPrivilegeEscalation: false
       readOnlyRootFilesystem: true
@@ -29,19 +26,18 @@ containers:
       - name: exercises-start-points-tmp-dir
         mountPath: /tmp
         readOnly: false
+      - mountPath: /var/run/docker.sock
+        name: docker-socket
     resources:
       requests:
-        cpu: 10m
+        cpu: 20m
         memory: 32Mi
       limits:
-        cpu: 50m
         memory: 64Mi
     livenessProbe:
       path: /alive?
-      port: 4525
     readinessProbe:
       path: /ready?
-      port: 4525
 
 envFromSecret: {}
 
